@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CollabGlam – Full Interactive App</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --pink: #FF3E8A;
+  --rose: #FF6BA8;
+  --coral: #FF8C69;
+  --dark: #0D0D14;
+  --surface: #14141F;
+  --card: #1C1C2E;
+  --card2: #21213A;
+  --text: #F5F0FF;
+  --muted: #8E8BA8;
+  --border: rgba(255,62,138,0.18);
+  --glow: rgba(255,62,138,0.25);
+  --green: #36D399;
+  --yellow: #FBBF24;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--dark);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.6;overflow-x:hidden;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.4;}
+
+/* ── SCREENS ── */
+.screen{display:none;animation:fadeIn .35s ease;}
+.screen.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:16px 48px;background:rgba(13,13,20,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.logo{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;background:linear-gradient(135deg,var(--pink),var(--coral));-webkit-background-clip:text;-webkit-text-fill-color:transparent;cursor:pointer;}
+.nav-tabs{display:flex;gap:4px;}
+.nav-tab{padding:8px 18px;border-radius:50px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all .2s;font-family:'DM Sans',sans-serif;}
+.nav-tab.active,.nav-tab:hover{background:rgba(255,62,138,.1);color:var(--text);}
+.nav-tab.active{color:var(--rose);font-weight:600;}
+.nav-actions{display:flex;gap:10px;align-items:center;}
+
+/* ── BUTTONS ── */
+.btn{padding:10px 22px;border-radius:50px;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;border:none;transition:all .25s;letter-spacing:.3px;display:inline-flex;align-items:center;gap:7px;}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:linear-gradient(135deg,var(--pink),var(--coral));color:#fff;box-shadow:0 4px 20px var(--glow);}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 32px var(--glow);}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text);}
+.btn-ghost:hover{border-color:var(--pink);color:var(--pink);}
+.btn-outline{background:transparent;border:1.5px solid var(--pink);color:var(--pink);}
+.btn-outline:hover{background:var(--pink);color:#fff;}
+.btn-green{background:rgba(54,211,153,.12);border:1.5px solid rgba(54,211,153,.3);color:var(--green);}
+.btn-green:hover{background:rgba(54,211,153,.22);}
+.btn-sm{padding:7px 14px;font-size:12px;}
+.btn-full{width:100%;justify-content:center;}
+
+/* ── HERO ── */
+.hero{position:relative;padding:64px 48px 48px;display:grid;grid-template-columns:auto 1fr;gap:48px;align-items:center;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-100px;right:-100px;width:580px;height:580px;border-radius:50%;background:radial-gradient(circle,rgba(255,62,138,.18) 0%,transparent 65%);pointer-events:none;}
+.hero::after{content:'';position:absolute;bottom:-80px;left:180px;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(255,140,105,.1) 0%,transparent 65%);pointer-events:none;}
+.avatar-wrap{position:relative;flex-shrink:0;}
+.avatar-ring{width:148px;height:148px;border-radius:50%;padding:3px;background:linear-gradient(135deg,var(--pink),var(--coral));}
+.avatar-inner{width:100%;height:100%;border-radius:50%;background:linear-gradient(145deg,#2a1a3e,#1a2a3e);display:flex;align-items:center;justify-content:center;font-size:64px;}
+.verified-badge{position:absolute;bottom:6px;right:6px;width:32px;height:32px;border-radius:50%;background:var(--pink);display:flex;align-items:center;justify-content:center;font-size:14px;border:3px solid var(--dark);}
+.niche-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 14px;border-radius:50px;background:rgba(255,62,138,.12);border:1px solid var(--border);font-size:12px;font-weight:600;color:var(--rose);letter-spacing:.8px;text-transform:uppercase;margin-bottom:12px;}
+.hero-name{font-family:'Playfair Display',serif;font-size:52px;font-weight:900;line-height:1.05;letter-spacing:-2px;margin-bottom:6px;}
+.hero-handle{color:var(--muted);font-size:16px;margin-bottom:10px;}
+.hero-location{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:14px;margin-bottom:16px;}
+.hero-bio{font-size:16px;color:#bbb8d4;max-width:560px;line-height:1.65;margin-bottom:24px;}
+.hero-ctas{display:flex;gap:12px;flex-wrap:wrap;}
+
+/* ── QUICK STATS ── */
+.quick-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.stat-box{background:var(--surface);padding:26px 32px;text-align:center;cursor:default;transition:background .2s;}
+.stat-box:hover{background:var(--card);}
+.stat-val{font-family:'Playfair Display',serif;font-size:34px;font-weight:900;background:linear-gradient(135deg,var(--pink),var(--coral));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1;margin-bottom:4px;}
+.stat-label{font-size:12px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.8px;}
+
+/* ── MAIN LAYOUT ── */
+.main{padding:48px;display:grid;grid-template-columns:1fr 340px;gap:28px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;margin-bottom:22px;position:relative;overflow:hidden;transition:border-color .2s;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--pink),var(--coral),transparent);opacity:0;transition:opacity .3s;}
+.card:hover::before{opacity:1;}
+.section-title{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;margin-bottom:22px;display:flex;align-items:center;gap:10px;}
+.section-icon{width:32px;height:32px;border-radius:8px;background:rgba(255,62,138,.12);display:flex;align-items:center;justify-content:center;font-size:16px;}
+
+/* ── PLATFORMS ── */
+.platform-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.platform-card{background:var(--card2);border:1px solid rgba(255,255,255,.05);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;transition:border-color .2s,transform .2s;cursor:pointer;}
+.platform-card:hover{border-color:var(--border);transform:translateY(-2px);}
+.platform-top{display:flex;align-items:center;gap:10px;}
+.platform-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.ig{background:linear-gradient(135deg,#f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);}
+.yt{background:#FF0000;}
+.tt{background:#000;border:1px solid #333;}
+.tw{background:#1DA1F2;}
+.platform-name{font-weight:600;font-size:14px;}
+.platform-handle{color:var(--muted);font-size:12px;}
+.platform-stats{display:flex;gap:16px;}
+.p-stat{display:flex;flex-direction:column;}
+.p-val{font-weight:700;font-size:15px;}
+.p-lbl{font-size:11px;color:var(--muted);}
+.eng-bar{height:4px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;}
+.eng-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--pink),var(--coral));}
+
+/* ── DEMOGRAPHICS ── */
+.demo-row{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+.demo-block h4{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:14px;}
+.age-bar{margin-bottom:10px;}
+.age-label{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;}
+.age-label span:last-child{color:var(--rose);font-weight:600;}
+.bar-track{height:6px;background:rgba(255,255,255,.06);border-radius:6px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--pink),var(--coral));transition:width 1s ease;}
+.gender-row{display:flex;gap:10px;margin-bottom:12px;}
+.gender-pill{flex:1;padding:14px;background:var(--card2);border:1px solid rgba(255,255,255,.05);border-radius:12px;text-align:center;}
+.gender-pct{font-size:22px;font-weight:700;color:var(--pink);}
+.gender-lbl{font-size:12px;color:var(--muted);}
+.location-item{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.location-item:last-child{border-bottom:none;}
+.loc-pct{font-size:13px;font-weight:600;color:var(--rose);}
+
+/* ── CONTENT FORMATS ── */
+.format-chips{display:flex;flex-wrap:wrap;gap:10px;}
+.format-chip{padding:7px 16px;border-radius:50px;background:var(--card2);border:1px solid rgba(255,255,255,.06);font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;}
+.chip-dot{width:7px;height:7px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--coral));}
+
+/* ── METRICS ── */
+.metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:22px;}
+.metric-box{background:var(--card2);border:1px solid rgba(255,255,255,.05);border-radius:14px;padding:18px;}
+.metric-icon{font-size:20px;margin-bottom:8px;}
+.metric-val{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;margin-bottom:2px;}
+.metric-lbl{font-size:12px;color:var(--muted);}
+.highlight-card{background:linear-gradient(135deg,rgba(255,62,138,.08),rgba(255,140,105,.06));border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:12px;}
+.highlight-brand{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.brand-logo{width:32px;height:32px;border-radius:8px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:16px;}
+.brand-name{font-weight:600;font-size:15px;}
+.brand-date{font-size:12px;color:var(--muted);}
+.highlight-metrics{display:flex;gap:18px;}
+.hm{display:flex;flex-direction:column;}
+.hm-val{font-weight:700;font-size:15px;color:var(--rose);}
+.hm-lbl{font-size:11px;color:var(--muted);}
+
+/* ── COLLAB LOGOS ── */
+.collab-logos{display:flex;flex-wrap:wrap;gap:12px;}
+.collab-logo{width:68px;height:68px;border-radius:14px;background:var(--card2);border:1px solid rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:border-color .2s,transform .2s;}
+.collab-logo:hover{border-color:var(--border);transform:scale(1.08);}
+
+/* ── SIDEBAR ── */
+.sidebar{display:flex;flex-direction:column;gap:18px;}
+.sidebar-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;}
+.cta-card{background:linear-gradient(145deg,#1e0d2e,#0d1e2e);border:1px solid var(--border);border-radius:20px;padding:28px;text-align:center;position:relative;overflow:hidden;}
+.cta-card::before{content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(255,62,138,.25) 0%,transparent 70%);}
+.cta-title{font-family:'Playfair Display',serif;font-size:21px;font-weight:900;margin-bottom:6px;position:relative;}
+.cta-sub{font-size:13px;color:var(--muted);margin-bottom:22px;position:relative;}
+.cta-btns{display:flex;flex-direction:column;gap:10px;position:relative;}
+.btn-shortlist{background:rgba(255,62,138,.1);border:1.5px solid var(--border);color:var(--rose);font-weight:600;padding:12px;border-radius:50px;cursor:pointer;font-size:13px;transition:all .2s;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:7px;}
+.btn-shortlist:hover{background:rgba(255,62,138,.2);}
+.btn-shortlist.active{background:rgba(255,62,138,.25);border-color:var(--pink);}
+.btn-download-action{background:transparent;border:1px solid rgba(255,255,255,.1);color:var(--muted);font-weight:500;padding:12px;border-radius:50px;cursor:pointer;font-size:13px;transition:all .2s;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:7px;}
+.btn-download-action:hover{border-color:var(--border);color:var(--text);}
+.rate-item{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.rate-item:last-child{border-bottom:none;}
+.rate-type{font-size:13px;color:#bbb8d4;}
+.rate-price{font-weight:700;font-size:14px;color:var(--rose);}
+.contact-item{display:flex;align-items:center;gap:10px;padding:9px 0;font-size:13px;color:#bbb8d4;}
+.tag-cloud{display:flex;flex-wrap:wrap;gap:8px;}
+.tag{padding:5px 13px;border-radius:50px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);font-size:12px;color:var(--muted);cursor:pointer;transition:all .2s;}
+.tag:hover{border-color:var(--border);color:var(--rose);}
+
+/* ── TOAST ── */
+.toast-container{position:fixed;top:80px;right:24px;z-index:10000;display:flex;flex-direction:column;gap:10px;pointer-events:none;}
+.toast{padding:14px 20px;border-radius:14px;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;gap:10px;font-size:14px;font-weight:500;pointer-events:all;transform:translateX(120%);transition:transform .35s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 32px rgba(0,0,0,.4);}
+.toast.show{transform:translateX(0);}
+.toast.success{border-color:rgba(54,211,153,.3);background:rgba(54,211,153,.08);}
+.toast.info{border-color:var(--border);background:rgba(255,62,138,.08);}
+.toast.warning{border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.08);}
+.toast-icon{font-size:18px;}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:36px;width:90%;max-width:520px;position:relative;transform:scale(.93) translateY(20px);transition:transform .3s cubic-bezier(.34,1.56,.64,1);max-height:90vh;overflow-y:auto;}
+.modal-overlay.open .modal{transform:scale(1) translateY(0);}
+.modal-close{position:absolute;top:18px;right:18px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:background .2s;color:var(--text);}
+.modal-close:hover{background:rgba(255,62,138,.15);}
+.modal-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;margin-bottom:8px;}
+.modal-sub{color:var(--muted);font-size:14px;margin-bottom:24px;}
+.form-group{margin-bottom:16px;}
+.form-label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px;display:block;}
+.form-input{width:100%;padding:12px 16px;background:var(--card2);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s;}
+.form-input:focus{border-color:var(--pink);}
+.form-select{width:100%;padding:12px 16px;background:var(--card2);border:1px solid rgba(255,255,255,.08);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;cursor:pointer;}
+.form-textarea{min-height:100px;resize:vertical;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.checkbox-row{display:flex;align-items:center;gap:10px;padding:12px;background:var(--card2);border-radius:10px;margin-bottom:8px;cursor:pointer;border:1px solid rgba(255,255,255,.05);transition:border-color .2s;}
+.checkbox-row:hover{border-color:var(--border);}
+.checkbox-row input{accent-color:var(--pink);width:16px;height:16px;cursor:pointer;}
+.checkbox-label{font-size:14px;}
+
+/* ── TOGGLE ── */
+.toggle-wrap{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.toggle-wrap:last-child{border-bottom:none;}
+.toggle-info{display:flex;flex-direction:column;}
+.toggle-name{font-size:13px;font-weight:500;}
+.toggle-desc{font-size:11px;color:var(--muted);}
+.toggle{width:42px;height:24px;border-radius:12px;cursor:pointer;position:relative;transition:background .3s;flex-shrink:0;}
+.toggle.on{background:var(--pink);}
+.toggle.off{background:rgba(255,255,255,.12);}
+.toggle::after{content:'';position:absolute;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .3s;}
+.toggle.on::after{left:21px;}
+.toggle.off::after{left:3px;}
+
+/* ── SHARE POPUP ── */
+.share-options{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0;}
+.share-btn{background:var(--card2);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:18px 12px;text-align:center;cursor:pointer;transition:all .2s;}
+.share-btn:hover{border-color:var(--border);transform:translateY(-2px);}
+.share-btn-icon{font-size:28px;margin-bottom:8px;}
+.share-btn-label{font-size:12px;color:var(--muted);}
+.link-copy-box{display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px 16px;margin-bottom:16px;}
+.link-copy-box input{flex:1;background:transparent;border:none;color:var(--rose);font-size:13px;outline:none;font-family:'DM Sans',sans-serif;}
+.copy-btn{background:rgba(255,62,138,.12);border:1px solid var(--border);color:var(--rose);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;transition:all .2s;font-family:'DM Sans',sans-serif;}
+.copy-btn:hover{background:rgba(255,62,138,.22);}
+
+/* ── DASHBOARD SCREEN ── */
+.dash-layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 61px);}
+.side-nav{background:var(--surface);border-right:1px solid var(--border);padding:24px 16px;display:flex;flex-direction:column;gap:4px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;font-size:14px;color:var(--muted);cursor:pointer;transition:all .2s;border:none;background:transparent;font-family:'DM Sans',sans-serif;text-align:left;width:100%;}
+.nav-item.active{background:rgba(255,62,138,.1);color:var(--text);}
+.nav-item:hover:not(.active){background:rgba(255,255,255,.04);color:var(--text);}
+.nav-divider{height:1px;background:var(--border);margin:8px 0;}
+.nav-badge{margin-left:auto;background:var(--pink);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:50px;}
+.dash-content-area{padding:32px;display:flex;flex-direction:column;gap:22px;overflow-y:auto;}
+.sub-screen{display:none;}
+.sub-screen.active{display:block;}
+.welcome-banner{background:linear-gradient(135deg,rgba(255,62,138,.15),rgba(255,140,105,.08));border:1px solid var(--border);border-radius:16px;padding:22px 26px;display:flex;align-items:center;gap:18px;}
+.welcome-avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--coral));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.stat-mini{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;cursor:pointer;transition:border-color .2s,transform .2s;}
+.stat-mini:hover{border-color:var(--rose);transform:translateY(-2px);}
+.sm-val{font-family:'Playfair Display',serif;font-size:26px;font-weight:900;background:linear-gradient(135deg,var(--pink),var(--coral));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.sm-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;}
+.sm-change{font-size:11px;color:var(--green);margin-top:4px;}
+.sm-change.alert{color:var(--rose);}
+.visibility-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;}
+.kit-link-box{display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:12px 16px;margin-bottom:14px;}
+.kit-link-text{color:var(--rose);font-size:13px;flex:1;}
+
+/* EDIT SCREEN */
+.edit-layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+.edit-form{display:flex;flex-direction:column;gap:18px;}
+.platform-row-edit{display:flex;align-items:center;justify-content:space-between;background:var(--card2);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:12px 16px;margin-bottom:10px;}
+.plat-left{display:flex;align-items:center;gap:10px;font-size:14px;}
+.plat-followers{font-size:12px;color:var(--muted);}
+.plat-status{font-size:11px;padding:3px 10px;border-radius:50px;background:rgba(54,211,153,.1);color:var(--green);}
+.preview-pane{background:var(--card2);border-radius:16px;padding:20px;position:sticky;top:20px;}
+.preview-label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:14px;}
+.preview-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;}
+.preview-header{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+.preview-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--coral));display:flex;align-items:center;justify-content:center;font-size:20px;}
+.preview-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.ps-box{background:var(--card2);border-radius:10px;padding:12px;text-align:center;}
+.ps-val{font-weight:700;font-size:16px;color:var(--rose);}
+.ps-lbl{font-size:10px;color:var(--muted);}
+.save-bar{padding:14px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(13,13,20,.9);position:sticky;bottom:0;}
+.unsaved{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;}
+.dot-unsaved{width:6px;height:6px;border-radius:50%;background:var(--coral);}
+
+/* ANALYTICS */
+.analytics-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+.an-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;}
+.an-val{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;background:linear-gradient(135deg,var(--pink),var(--coral));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.an-lbl{font-size:12px;color:var(--muted);}
+.an-trend{font-size:12px;color:var(--green);margin-top:4px;}
+.chart-area{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;margin-bottom:22px;}
+.chart-placeholder{height:150px;border-radius:10px;background:linear-gradient(180deg,rgba(255,62,138,.06) 0%,transparent 100%);border-bottom:1px solid var(--border);display:flex;align-items:flex-end;gap:0;padding:0 16px;}
+.bar-item{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding:0 3px;}
+.chart-bar{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(180deg,var(--pink),var(--coral));opacity:.65;transition:opacity .2s,transform .2s;cursor:pointer;}
+.chart-bar:hover{opacity:1;transform:scaleY(1.04);transform-origin:bottom;}
+.chart-labels{display:flex;gap:0;margin-top:8px;}
+.chart-lbl{flex:1;text-align:center;font-size:10px;color:var(--muted);}
+.viewer-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.viewer-row:last-child{border-bottom:none;}
+.viewer-brand{display:flex;align-items:center;gap:10px;font-size:14px;}
+.viewer-icon{width:32px;height:32px;border-radius:8px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:16px;}
+.viewer-time{font-size:12px;color:var(--muted);}
+.viewer-status{font-size:11px;padding:3px 10px;border-radius:50px;}
+.status-hot{background:rgba(255,62,138,.1);color:var(--rose);}
+.status-new{background:rgba(54,211,153,.1);color:var(--green);}
+.status-view{background:rgba(255,255,255,.05);color:var(--muted);}
+
+/* SHORTLIST INDICATOR */
+.shortlisted-badge{display:none;background:rgba(255,62,138,.12);border:1px solid var(--border);border-radius:50px;padding:6px 14px;font-size:12px;color:var(--rose);align-items:center;gap:6px;}
+.shortlisted-badge.visible{display:inline-flex;}
+
+footer{padding:24px 48px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:13px;}
+.footer-logo{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;background:linear-gradient(135deg,var(--pink),var(--coral));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.hero,.quick-stats,.card,.sidebar-card,.cta-card{animation:fadeUp .5s ease both;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.spin{animation:spin .7s linear infinite;}
+
+@media(max-width:900px){
+  nav{padding:14px 20px;}
+  .hero{grid-template-columns:1fr;padding:36px 20px;}
+  .hero-name{font-size:36px;}
+  .quick-stats{grid-template-columns:repeat(2,1fr);}
+  .main{grid-template-columns:1fr;padding:24px 20px;}
+  .platform-grid{grid-template-columns:1fr;}
+  .demo-row{grid-template-columns:1fr;}
+  .dash-layout{grid-template-columns:1fr;}
+  .side-nav{display:none;}
+  .stats-row{grid-template-columns:repeat(2,1fr);}
+  .analytics-stats{grid-template-columns:repeat(2,1fr);}
+  .edit-layout{grid-template-columns:1fr;}
+  footer{flex-direction:column;gap:10px;text-align:center;}
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════
+     TOAST CONTAINER
+════════════════════════════════════ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ════════════════════════════════════
+     NAV
+════════════════════════════════════ -->
+<nav>
+  <div class="logo" onclick="showScreen('brand')">CollabGlam</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" id="tab-brand" onclick="showScreen('brand')">🌟 Media Kit</button>
+    <button class="nav-tab" id="tab-dashboard" onclick="showScreen('dashboard')">📊 Dashboard</button>
+  </div>
+  <div class="nav-actions">
+    <div class="shortlisted-badge" id="shortlistedBadge">⭐ Shortlisted</div>
+    <button class="btn btn-ghost btn-sm" onclick="openModal('shareModal')">🔗 Share Kit</button>
+    <button class="btn btn-primary btn-sm" onclick="openModal('collaborateModal')">✉️ Invite to Collaborate</button>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════════
+     SCREEN 1: BRAND VIEW (MEDIA KIT)
+════════════════════════════════════ -->
+<div class="screen active" id="screen-brand">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="avatar-wrap">
+      <div class="avatar-ring">
+        <div class="avatar-inner">🌟</div>
+      </div>
+      <div class="verified-badge">✓</div>
+    </div>
+    <div class="hero-info">
+      <div class="niche-tag">✨ Beauty &amp; Lifestyle</div>
+      <h1 class="hero-name">Priya Sharma</h1>
+      <div class="hero-handle">@priyaglam_official</div>
+      <div class="hero-location">📍 Mumbai, India &nbsp;|&nbsp; 🌐 Available Worldwide</div>
+      <p class="hero-bio">Lifestyle &amp; beauty creator helping brands tell authentic stories that convert. From skincare routines to fashion hauls — I create content your audience actually wants to watch.</p>
+      <div class="hero-ctas">
+        <button class="btn btn-primary" onclick="openModal('collaborateModal')">✉️ Invite to Collaborate</button>
+        <button class="btn btn-outline" id="heroShortlistBtn" onclick="toggleShortlist()">⭐ Shortlist Creator</button>
+        <button class="btn btn-ghost" onclick="openModal('shareModal')">⬇️ Download / Share Kit</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUICK STATS -->
+  <div class="quick-stats">
+    <div class="stat-box" onclick="scrollToSection('platforms')">
+      <div class="stat-val">2.4M</div>
+      <div class="stat-label">Total Followers</div>
+    </div>
+    <div class="stat-box" onclick="scrollToSection('platforms')">
+      <div class="stat-val">6.8%</div>
+      <div class="stat-label">Avg. Engagement</div>
+    </div>
+    <div class="stat-box" onclick="scrollToSection('performance')">
+      <div class="stat-val">1.2M</div>
+      <div class="stat-label">Monthly Reach</div>
+    </div>
+    <div class="stat-box" onclick="scrollToSection('collabs')">
+      <div class="stat-val">34+</div>
+      <div class="stat-label">Brand Collaborations</div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+    <div>
+
+      <!-- PLATFORMS -->
+      <div class="card" id="platforms">
+        <div class="section-title"><div class="section-icon">📱</div>Platform Presence</div>
+        <div class="platform-grid">
+          <div class="platform-card" onclick="openPlatformModal('Instagram','1.1M','7.2%','480K')">
+            <div class="platform-top">
+              <div class="platform-icon ig">📸</div>
+              <div><div class="platform-name">Instagram</div><div class="platform-handle">@priyaglam_official</div></div>
+            </div>
+            <div class="platform-stats">
+              <div class="p-stat"><span class="p-val">1.1M</span><span class="p-lbl">Followers</span></div>
+              <div class="p-stat"><span class="p-val">7.2%</span><span class="p-lbl">Engagement</span></div>
+              <div class="p-stat"><span class="p-val">480K</span><span class="p-lbl">Avg. Views</span></div>
+            </div>
+            <div><div class="eng-bar"><div class="eng-fill" style="width:72%"></div></div></div>
+          </div>
+          <div class="platform-card" onclick="openPlatformModal('YouTube','620K','5.4%','310K')">
+            <div class="platform-top">
+              <div class="platform-icon yt">▶</div>
+              <div><div class="platform-name">YouTube</div><div class="platform-handle">Priya Glam</div></div>
+            </div>
+            <div class="platform-stats">
+              <div class="p-stat"><span class="p-val">620K</span><span class="p-lbl">Subscribers</span></div>
+              <div class="p-stat"><span class="p-val">5.4%</span><span class="p-lbl">Engagement</span></div>
+              <div class="p-stat"><span class="p-val">310K</span><span class="p-lbl">Avg. Views</span></div>
+            </div>
+            <div><div class="eng-bar"><div class="eng-fill" style="width:54%"></div></div></div>
+          </div>
+          <div class="platform-card" onclick="openPlatformModal('TikTok','480K','8.1%','220K')">
+            <div class="platform-top">
+              <div class="platform-icon tt">🎵</div>
+              <div><div class="platform-name">TikTok</div><div class="platform-handle">@priyaglam</div></div>
+            </div>
+            <div class="platform-stats">
+              <div class="p-stat"><span class="p-val">480K</span><span class="p-lbl">Followers</span></div>
+              <div class="p-stat"><span class="p-val">8.1%</span><span class="p-lbl">Engagement</span></div>
+              <div class="p-stat"><span class="p-val">220K</span><span class="p-lbl">Avg. Views</span></div>
+            </div>
+            <div><div class="eng-bar"><div class="eng-fill" style="width:81%"></div></div></div>
+          </div>
+          <div class="platform-card" onclick="openPlatformModal('Twitter / X','188K','4.2%','38K')">
+            <div class="platform-top">
+              <div class="platform-icon tw">🐦</div>
+              <div><div class="platform-name">Twitter / X</div><div class="platform-handle">@priyaglam</div></div>
+            </div>
+            <div class="platform-stats">
+              <div class="p-stat"><span class="p-val">188K</span><span class="p-lbl">Followers</span></div>
+              <div class="p-stat"><span class="p-val">4.2%</span><span class="p-lbl">Engagement</span></div>
+              <div class="p-stat"><span class="p-val">38K</span><span class="p-lbl">Avg. Reach</span></div>
+            </div>
+            <div><div class="eng-bar"><div class="eng-fill" style="width:42%"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTENT FORMATS -->
+      <div class="card">
+        <div class="section-title"><div class="section-icon">🎬</div>Content Formats</div>
+        <div class="format-chips">
+          <div class="format-chip"><div class="chip-dot"></div>Instagram Reels</div>
+          <div class="format-chip"><div class="chip-dot"></div>YouTube Shorts</div>
+          <div class="format-chip"><div class="chip-dot"></div>YouTube Long-form</div>
+          <div class="format-chip"><div class="chip-dot"></div>Instagram Stories</div>
+          <div class="format-chip"><div class="chip-dot"></div>Carousel Posts</div>
+          <div class="format-chip"><div class="chip-dot"></div>Static Posts</div>
+          <div class="format-chip"><div class="chip-dot"></div>TikTok Videos</div>
+          <div class="format-chip"><div class="chip-dot"></div>Brand Reviews</div>
+          <div class="format-chip"><div class="chip-dot"></div>Tutorials &amp; How-Tos</div>
+          <div class="format-chip"><div class="chip-dot"></div>GRWM Vlogs</div>
+        </div>
+      </div>
+
+      <!-- AUDIENCE DEMOGRAPHICS -->
+      <div class="card">
+        <div class="section-title"><div class="section-icon">👥</div>Audience Demographics</div>
+        <div class="demo-row">
+          <div class="demo-block">
+            <h4>Age Breakdown</h4>
+            <div class="age-bar"><div class="age-label"><span>18–24</span><span>38%</span></div><div class="bar-track"><div class="bar-fill" style="width:38%"></div></div></div>
+            <div class="age-bar"><div class="age-label"><span>25–34</span><span>42%</span></div><div class="bar-track"><div class="bar-fill" style="width:42%"></div></div></div>
+            <div class="age-bar"><div class="age-label"><span>35–44</span><span>14%</span></div><div class="bar-track"><div class="bar-fill" style="width:14%"></div></div></div>
+            <div class="age-bar"><div class="age-label"><span>45+</span><span>6%</span></div><div class="bar-track"><div class="bar-fill" style="width:6%"></div></div></div>
+            <br>
+            <h4>Gender</h4>
+            <div class="gender-row">
+              <div class="gender-pill"><div class="gender-pct">72%</div><div class="gender-lbl">Female</div></div>
+              <div class="gender-pill"><div class="gender-pct">26%</div><div class="gender-lbl">Male</div></div>
+              <div class="gender-pill"><div class="gender-pct">2%</div><div class="gender-lbl">Other</div></div>
+            </div>
+          </div>
+          <div class="demo-block">
+            <h4>Top Locations</h4>
+            <div class="location-item"><span>🇮🇳 India</span><span class="loc-pct">48%</span></div>
+            <div class="location-item"><span>🇺🇸 United States</span><span class="loc-pct">18%</span></div>
+            <div class="location-item"><span>🇬🇧 United Kingdom</span><span class="loc-pct">9%</span></div>
+            <div class="location-item"><span>🇦🇪 UAE</span><span class="loc-pct">8%</span></div>
+            <div class="location-item"><span>🇸🇬 Singapore</span><span class="loc-pct">5%</span></div>
+            <div class="location-item"><span>🌍 Others</span><span class="loc-pct">12%</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PERFORMANCE -->
+      <div class="card" id="performance">
+        <div class="section-title"><div class="section-icon">🚀</div>Performance Highlights</div>
+        <div class="metric-grid">
+          <div class="metric-box"><div class="metric-icon">👁️</div><div class="metric-val">4.8M</div><div class="metric-lbl">Avg. Monthly Impressions</div></div>
+          <div class="metric-box"><div class="metric-icon">📡</div><div class="metric-val">1.2M</div><div class="metric-lbl">Monthly Reach</div></div>
+          <div class="metric-box"><div class="metric-icon">🔗</div><div class="metric-val">42K</div><div class="metric-lbl">Avg. Link Clicks / Campaign</div></div>
+          <div class="metric-box"><div class="metric-icon">🔖</div><div class="metric-val">68K</div><div class="metric-lbl">Avg. Saves / Campaign</div></div>
+        </div>
+        <div class="section-title" style="margin-top:6px;font-size:16px;"><div class="section-icon">🏆</div>Campaign Highlights</div>
+        <div class="highlight-card" style="cursor:pointer;" onclick="openCampaignModal('Nykaa Beauty','💄','Oct 2024','2.1M','9.4%','18K','3.2x')">
+          <div class="highlight-brand">
+            <div class="brand-logo">💄</div>
+            <div><div class="brand-name">Nykaa Beauty × Priya</div><div class="brand-date">Product Launch Campaign · Oct 2024</div></div>
+            <span style="margin-left:auto;font-size:11px;color:var(--muted);">View details →</span>
+          </div>
+          <div class="highlight-metrics">
+            <div class="hm"><span class="hm-val">2.1M</span><span class="hm-lbl">Impressions</span></div>
+            <div class="hm"><span class="hm-val">9.4%</span><span class="hm-lbl">Engagement</span></div>
+            <div class="hm"><span class="hm-val">18K</span><span class="hm-lbl">Clicks</span></div>
+            <div class="hm"><span class="hm-val">3.2x</span><span class="hm-lbl">ROAS</span></div>
+          </div>
+        </div>
+        <div class="highlight-card" style="cursor:pointer;" onclick="openCampaignModal('AJIO Fashion','👗','Aug 2024','1.6M','7.8%','12K','28K saves')">
+          <div class="highlight-brand">
+            <div class="brand-logo">👗</div>
+            <div><div class="brand-name">AJIO Fashion Week</div><div class="brand-date">Awareness Campaign · Aug 2024</div></div>
+            <span style="margin-left:auto;font-size:11px;color:var(--muted);">View details →</span>
+          </div>
+          <div class="highlight-metrics">
+            <div class="hm"><span class="hm-val">1.6M</span><span class="hm-lbl">Impressions</span></div>
+            <div class="hm"><span class="hm-val">7.8%</span><span class="hm-lbl">Engagement</span></div>
+            <div class="hm"><span class="hm-val">12K</span><span class="hm-lbl">Clicks</span></div>
+            <div class="hm"><span class="hm-val">28K</span><span class="hm-lbl">Saves</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAST COLLABS -->
+      <div class="card" id="collabs">
+        <div class="section-title"><div class="section-icon">🤝</div>Past Brand Collaborations</div>
+        <div class="collab-logos">
+          <div class="collab-logo" onclick="showToast('💄 Nykaa Beauty — 3 campaigns, ₹2.4L total value','info')">💄</div>
+          <div class="collab-logo" onclick="showToast('👗 AJIO — Fashion Week Campaign Partner','info')">👗</div>
+          <div class="collab-logo" onclick="showToast('🌿 Mamaearth — Skincare Ambassador','info')">🌿</div>
+          <div class="collab-logo" onclick="showToast('✨ MyGlamm — Product Launch Partner','info')">✨</div>
+          <div class="collab-logo" onclick="showToast('💅 Sugar Cosmetics — 2 campaigns','info')">💅</div>
+          <div class="collab-logo" onclick="showToast('👜 Lenskart — Eyewear Campaign','info')">👜</div>
+          <div class="collab-logo" onclick="showToast('🧴 Plum Goodness — Skincare Review','info')">🧴</div>
+          <div class="collab-logo" onclick="showToast('☕ Sleepy Owl Coffee — Lifestyle Integration','info')">☕</div>
+          <div class="collab-logo" onclick="showToast('📱 Boat — Tech & Lifestyle Campaign','info')">📱</div>
+          <div class="collab-logo" onclick="showToast('🎧 Mivi — Audio Products Review','info')">🎧</div>
+        </div>
+        <div style="margin-top:14px;color:var(--muted);font-size:13px;">Click any logo to see collaboration details</div>
+      </div>
+
+    </div><!-- /content-col -->
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="cta-card">
+        <div class="cta-title">Work with Priya</div>
+        <div class="cta-sub">Join 34+ brands that have partnered with this creator</div>
+        <div class="cta-btns">
+          <button class="btn btn-primary btn-full" onclick="openModal('collaborateModal')">✉️ Invite to Collaborate</button>
+          <button class="btn-shortlist" id="sidebarShortlistBtn" onclick="toggleShortlist()">⭐ Shortlist Creator</button>
+          <button class="btn-download-action" onclick="openModal('shareModal')">⬇️ Download Kit &nbsp;·&nbsp; 🔗 Share Link</button>
+        </div>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="section-title" style="font-size:16px;"><div class="section-icon">💰</div>Rate Card</div>
+        <div class="rate-item"><span class="rate-type">Instagram Reel</span><span class="rate-price">₹45,000</span></div>
+        <div class="rate-item"><span class="rate-type">Instagram Story (3 slides)</span><span class="rate-price">₹18,000</span></div>
+        <div class="rate-item"><span class="rate-type">YouTube Integration</span><span class="rate-price">₹80,000</span></div>
+        <div class="rate-item"><span class="rate-type">YouTube Dedicated</span><span class="rate-price">₹1,50,000</span></div>
+        <div class="rate-item"><span class="rate-type">TikTok Video</span><span class="rate-price">₹22,000</span></div>
+        <div class="rate-item"><span class="rate-type">Full Campaign Bundle</span><span class="rate-price">Custom</span></div>
+        <div style="margin-top:14px;"><button class="btn btn-outline btn-full btn-sm" onclick="openModal('collaborateModal')">Request Custom Quote →</button></div>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="section-title" style="font-size:16px;"><div class="section-icon">📬</div>Contact</div>
+        <div class="contact-item" style="cursor:pointer;" onclick="copyToClipboard('collab@priyaglam.com','Email copied!')">✉️ collab@priyaglam.com <span style="margin-left:auto;font-size:11px;color:var(--muted);">Copy</span></div>
+        <div class="contact-item">📞 Via CollabGlam platform</div>
+        <div class="contact-item">💼 Manager: Riya Singh</div>
+        <div class="contact-item">⏱️ Avg. response: &lt; 24 hrs</div>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="section-title" style="font-size:16px;"><div class="section-icon">🏷️</div>Topics &amp; Niches</div>
+        <div class="tag-cloud">
+          <div class="tag" onclick="showToast('Showing creators tagged: Skincare','info')">Skincare</div>
+          <div class="tag" onclick="showToast('Showing creators tagged: Makeup','info')">Makeup</div>
+          <div class="tag" onclick="showToast('Showing creators tagged: Fashion','info')">Fashion</div>
+          <div class="tag" onclick="showToast('Showing creators tagged: Wellness','info')">Wellness</div>
+          <div class="tag" onclick="showToast('Showing creators tagged: Haircare','info')">Haircare</div>
+          <div class="tag" onclick="showToast('Showing creators tagged: GRWM','info')">GRWM</div>
+          <div class="tag" onclick="showToast('Showing creators tagged: Lifestyle','info')">Lifestyle</div>
+          <div class="tag" onclick="showToast('Showing creators tagged: Travel','info')">Travel</div>
+          <div class="tag" onclick="showToast('Showing creators tagged: Food','info')">Food</div>
+          <div class="tag" onclick="showToast('Showing creators tagged: Sustainability','info')">Sustainability</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-logo">CollabGlam</div>
+    <div>Media Kit designed & built by <strong style="color:var(--rose);">Kirti Solanki</strong></div>
+    <div>© 2025 Kirti Solanki</div>
+  </footer>
+</div><!-- /screen-brand -->
+
+
+<!-- ════════════════════════════════════
+     SCREEN 2: DASHBOARD
+════════════════════════════════════ -->
+<div class="screen" id="screen-dashboard">
+  <div class="dash-layout">
+    <!-- Side Nav -->
+    <div class="side-nav">
+      <button class="nav-item active" id="nav-home" onclick="showSubScreen('home')">🏠 Dashboard</button>
+      <button class="nav-item" id="nav-edit" onclick="showSubScreen('edit')">✏️ Edit Media Kit</button>
+      <button class="nav-item" id="nav-analytics" onclick="showSubScreen('analytics')">📊 Analytics</button>
+      <button class="nav-item" id="nav-collabs" onclick="showToast('Collaborations feature coming soon!','info')">🤝 Collaborations <span class="nav-badge">2</span></button>
+      <div class="nav-divider"></div>
+      <button class="nav-item" id="nav-share" onclick="openModal('shareModal')">🔗 Share Kit Link</button>
+      <button class="nav-item" onclick="showToast('Settings panel opening...','info')">⚙️ Settings</button>
+      <button class="nav-item" onclick="showToast('Help center opening in new tab...','info')">❓ Help</button>
+    </div>
+
+    <!-- Content Area -->
+    <div class="dash-content-area">
+
+      <!-- SUB-SCREEN: HOME -->
+      <div class="sub-screen active" id="sub-home">
+        <div class="welcome-banner">
+          <div class="welcome-avatar">🌟</div>
+          <div>
+            <h2 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;">Welcome back, Priya! 👋</h2>
+            <p style="color:var(--muted);font-size:13px;">Your media kit was viewed by <strong style="color:var(--rose)">14 brands</strong> in the last 7 days</p>
+          </div>
+          <button class="btn btn-primary btn-sm" style="margin-left:auto;flex-shrink:0;" onclick="showSubScreen('edit')">✏️ Edit Kit</button>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-mini" onclick="showSubScreen('analytics')">
+            <div class="sm-val">1.4K</div>
+            <div class="sm-lbl">Kit Views</div>
+            <div class="sm-change">↑ 22% this week</div>
+          </div>
+          <div class="stat-mini" onclick="showSubScreen('analytics')">
+            <div class="sm-val">14</div>
+            <div class="sm-lbl">Brand Viewers</div>
+            <div class="sm-change">↑ 5 new today</div>
+          </div>
+          <div class="stat-mini" onclick="showSubScreen('analytics')">
+            <div class="sm-val">3</div>
+            <div class="sm-lbl">Shortlisted By</div>
+            <div class="sm-change">↑ 1 new today</div>
+          </div>
+          <div class="stat-mini" onclick="showToast('⚡ 2 collab requests need your reply!','warning')">
+            <div class="sm-val">2</div>
+            <div class="sm-lbl">Collab Requests</div>
+            <div class="sm-change alert">⚡ Action needed</div>
+          </div>
+        </div>
+
+        <div class="visibility-card">
+          <div class="section-title" style="font-size:16px;margin-bottom:12px;"><div class="section-icon">🔗</div>Kit Visibility & Controls</div>
+          <div class="kit-link-box">
+            <span class="kit-link-text">collabglam.com/kit/priyaglam · Built by Kirti Solanki</span>
+            <button class="copy-btn" onclick="copyToClipboard('https://collabglam.com/kit/priyaglam_official','Kit link copied to clipboard!')">Copy</button>
+          </div>
+          <div class="toggle-wrap">
+            <div class="toggle-info"><div class="toggle-name">Public link active</div><div class="toggle-desc">Anyone with link can view your kit</div></div>
+            <div class="toggle on" onclick="toggleSwitch(this,'Public kit is now hidden','Public kit is now live')"></div>
+          </div>
+          <div class="toggle-wrap">
+            <div class="toggle-info"><div class="toggle-name">Show rate card to brands</div><div class="toggle-desc">Brands can see your pricing</div></div>
+            <div class="toggle on" onclick="toggleSwitch(this,'Rate card hidden from brands','Rate card visible to brands')"></div>
+          </div>
+          <div class="toggle-wrap">
+            <div class="toggle-info"><div class="toggle-name">Show contact details</div><div class="toggle-desc">Email &amp; manager details visible</div></div>
+            <div class="toggle off" onclick="toggleSwitch(this,'Contact details hidden','Contact details now visible')"></div>
+          </div>
+          <div class="toggle-wrap">
+            <div class="toggle-info"><div class="toggle-name">Allow PDF download</div><div class="toggle-desc">Brands can download your kit as PDF</div></div>
+            <div class="toggle off" onclick="toggleSwitch(this,'PDF download disabled','PDF download enabled')"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUB-SCREEN: EDIT -->
+      <div class="sub-screen" id="sub-edit">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+          <h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:900;">✏️ Edit Media Kit</h2>
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-ghost btn-sm" onclick="showSubScreen('home')">← Back</button>
+            <button class="btn btn-primary btn-sm" onclick="saveKitChanges()">💾 Save & Publish</button>
+          </div>
+        </div>
+        <div class="edit-layout">
+          <div class="edit-form">
+            <div class="card" style="margin-bottom:0;">
+              <div class="section-title" style="font-size:16px;">👤 Creator Profile</div>
+              <div class="form-group"><label class="form-label">Display Name</label><input class="form-input" id="editName" value="Priya Sharma" oninput="updatePreview()"></div>
+              <div class="form-group"><label class="form-label">Tagline / Bio</label><textarea class="form-input form-textarea" id="editBio" oninput="updatePreview()">Lifestyle & beauty creator helping brands tell authentic stories that convert.</textarea></div>
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">Category / Niche</label><input class="form-input" id="editNiche" value="Beauty & Lifestyle" oninput="updatePreview()"></div>
+                <div class="form-group"><label class="form-label">Location</label><input class="form-input" value="Mumbai, India"></div>
+              </div>
+            </div>
+            <div class="card" style="margin-bottom:0;">
+              <div class="section-title" style="font-size:16px;">📱 Linked Platforms</div>
+              <div class="platform-row-edit">
+                <div class="plat-left"><span>📸</span><div><div style="font-size:13px;font-weight:600;">Instagram</div><div class="plat-followers">1.1M followers · 7.2% eng</div></div></div>
+                <span class="plat-status">● Active</span>
+              </div>
+              <div class="platform-row-edit">
+                <div class="plat-left"><span>▶</span><div><div style="font-size:13px;font-weight:600;">YouTube</div><div class="plat-followers">620K subscribers · 5.4% eng</div></div></div>
+                <span class="plat-status">● Active</span>
+              </div>
+              <div class="platform-row-edit">
+                <div class="plat-left"><span>🎵</span><div><div style="font-size:13px;font-weight:600;">TikTok</div><div class="plat-followers">480K followers · 8.1% eng</div></div></div>
+                <span class="plat-status">● Active</span>
+              </div>
+              <button class="btn btn-ghost btn-full btn-sm" style="border-radius:10px;margin-top:4px;" onclick="showToast('Platform linking opens in new window...','info')">+ Add Platform</button>
+            </div>
+          </div>
+          <div>
+            <div class="preview-pane">
+              <div class="preview-label">👁️ Live Preview</div>
+              <div class="preview-card">
+                <div class="preview-header">
+                  <div class="preview-avatar">🌟</div>
+                  <div>
+                    <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;" id="previewName">Priya Sharma</div>
+                    <div style="font-size:12px;color:var(--muted);">@priyaglam_official · Mumbai</div>
+                  </div>
+                  <div style="margin-left:auto;font-size:11px;background:rgba(255,62,138,.1);color:var(--rose);padding:3px 10px;border-radius:50px;" id="previewNiche">Beauty & Lifestyle</div>
+                </div>
+                <p style="font-size:13px;color:#bbb8d4;margin-bottom:16px;" id="previewBio">Lifestyle & beauty creator helping brands tell authentic stories that convert.</p>
+                <div class="preview-stats-grid">
+                  <div class="ps-box"><div class="ps-val">2.4M</div><div class="ps-lbl">Total Followers</div></div>
+                  <div class="ps-box"><div class="ps-val">6.8%</div><div class="ps-lbl">Avg. Engagement</div></div>
+                  <div class="ps-box"><div class="ps-val">34+</div><div class="ps-lbl">Brand Collabs</div></div>
+                </div>
+                <div style="margin-top:14px;display:flex;gap:8px;">
+                  <div style="flex:1;background:linear-gradient(135deg,var(--pink),var(--coral));border-radius:8px;padding:10px;text-align:center;font-size:12px;font-weight:600;cursor:pointer;">✉️ Invite to Collab</div>
+                  <div style="flex:1;border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;font-size:12px;color:var(--rose);cursor:pointer;">⭐ Shortlist</div>
+                </div>
+              </div>
+              <div style="margin-top:14px;padding:14px;background:rgba(255,62,138,.05);border:1px dashed var(--border);border-radius:12px;font-size:12px;color:var(--muted);">
+                💡 Tip: Adding recent campaign results can increase brand inquiries by up to 3×
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="save-bar">
+          <div class="unsaved"><div class="dot-unsaved"></div> Unsaved changes</div>
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-ghost btn-sm" onclick="showScreen('brand')">👁️ Preview Live Kit</button>
+            <button class="btn btn-primary btn-sm" onclick="saveKitChanges()">💾 Save &amp; Publish</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUB-SCREEN: ANALYTICS -->
+      <div class="sub-screen" id="sub-analytics">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+          <h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:900;">📈 Kit Analytics</h2>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <select class="form-select" style="padding:8px 14px;border-radius:50px;font-size:13px;width:auto;" onchange="showToast('Date range updated','success')">
+              <option>Last 30 days</option>
+              <option>Last 7 days</option>
+              <option>Last 90 days</option>
+              <option>All time</option>
+            </select>
+            <button class="btn btn-ghost btn-sm" onclick="showToast('Exporting analytics report as PDF...','success')">⬇️ Export</button>
+          </div>
+        </div>
+
+        <div class="analytics-stats">
+          <div class="an-card"><div class="an-val">4.2K</div><div class="an-lbl">Total Kit Views</div><div class="an-trend">↑ 38% vs last month</div></div>
+          <div class="an-card"><div class="an-val">42</div><div class="an-lbl">Unique Brand Viewers</div><div class="an-trend">↑ 12 new this month</div></div>
+          <div class="an-card"><div class="an-val">8</div><div class="an-lbl">Shortlisted By</div><div class="an-trend">↑ 3 this week</div></div>
+          <div class="an-card"><div class="an-val">5</div><div class="an-lbl">Collab Requests</div><div class="an-trend" style="color:var(--rose)">⚡ 2 pending reply</div></div>
+        </div>
+
+        <div class="chart-area">
+          <div class="section-title" style="font-size:16px;margin-bottom:14px;">📈 Kit Views – Last 30 Days</div>
+          <div class="chart-placeholder" id="chartBars">
+            <div class="bar-item"><div class="chart-bar" style="height:40%" onclick="showToast('Jan 1: 82 views','info')"></div></div>
+            <div class="bar-item"><div class="chart-bar" style="height:55%" onclick="showToast('Jan 5: 112 views','info')"></div></div>
+            <div class="bar-item"><div class="chart-bar" style="height:45%" onclick="showToast('Jan 10: 94 views','info')"></div></div>
+            <div class="bar-item"><div class="chart-bar" style="height:70%" onclick="showToast('Jan 15: 143 views','info')"></div></div>
+            <div class="bar-item"><div class="chart-bar" style="height:60%" onclick="showToast('Jan 20: 124 views','info')"></div></div>
+            <div class="bar-item"><div class="chart-bar" style="height:80%" onclick="showToast('Jan 25: 163 views','info')"></div></div>
+            <div class="bar-item"><div class="chart-bar" style="height:65%" onclick="showToast('Jan 27: 133 views','info')"></div></div>
+            <div class="bar-item"><div class="chart-bar" style="height:90%" onclick="showToast('Jan 28: 184 views','info')"></div></div>
+            <div class="bar-item"><div class="chart-bar" style="height:75%" onclick="showToast('Jan 29: 153 views','info')"></div></div>
+            <div class="bar-item"><div class="chart-bar" style="height:100%" onclick="showToast('Jan 30: 204 views — Best day! 🔥','success')"></div></div>
+            <div class="bar-item"><div class="chart-bar" style="height:85%" onclick="showToast('Jan 31: 174 views','info')"></div></div>
+            <div class="bar-item"><div class="chart-bar" style="height:95%" onclick="showToast('Feb 1: 194 views','info')"></div></div>
+          </div>
+          <div class="chart-labels">
+            <div class="chart-lbl">Jan 1</div><div class="chart-lbl">Jan 5</div><div class="chart-lbl">Jan 10</div><div class="chart-lbl">Jan 15</div><div class="chart-lbl">Jan 20</div><div class="chart-lbl">Jan 25</div><div class="chart-lbl">Jan 27</div><div class="chart-lbl">Jan 28</div><div class="chart-lbl">Jan 29</div><div class="chart-lbl">Jan 30</div><div class="chart-lbl">Jan 31</div><div class="chart-lbl">Feb 1</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:0;">
+          <div class="section-title" style="font-size:16px;">🔍 Recent Brand Viewers</div>
+          <div class="viewer-row">
+            <div class="viewer-brand"><div class="viewer-icon">💄</div><div><div style="font-size:13px;font-weight:600;">Nykaa Beauty</div><div style="font-size:11px;color:var(--muted);">Viewed 3 times in 2 days</div></div></div>
+            <div class="viewer-time">2 hrs ago</div>
+            <div class="viewer-status status-hot" style="cursor:pointer;" onclick="showToast('Opening Nykaa Beauty brand profile...','info')">🔥 Hot Lead</div>
+          </div>
+          <div class="viewer-row">
+            <div class="viewer-brand"><div class="viewer-icon">👗</div><div><div style="font-size:13px;font-weight:600;">Myntra Fashion</div><div style="font-size:11px;color:var(--muted);">Viewed once · Shortlisted you</div></div></div>
+            <div class="viewer-time">Yesterday</div>
+            <div class="viewer-status status-new">⭐ Shortlisted</div>
+          </div>
+          <div class="viewer-row">
+            <div class="viewer-brand"><div class="viewer-icon">🌿</div><div><div style="font-size:13px;font-weight:600;">Mamaearth</div><div style="font-size:11px;color:var(--muted);">Viewed rate card section</div></div></div>
+            <div class="viewer-time">2 days ago</div>
+            <div class="viewer-status status-view">👁 Viewing</div>
+          </div>
+          <div class="viewer-row">
+            <div class="viewer-brand"><div class="viewer-icon">✨</div><div><div style="font-size:13px;font-weight:600;">Sugar Cosmetics</div><div style="font-size:11px;color:var(--muted);">Sent collab request · Replied</div></div></div>
+            <div class="viewer-time">3 days ago</div>
+            <div class="viewer-status status-hot" style="cursor:pointer;" onclick="openModal('collaborateModal')">✉️ Replied</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /dash-content-area -->
+  </div><!-- /dash-layout -->
+</div><!-- /screen-dashboard -->
+
+
+<!-- ════════════════════════════════════
+     MODALS
+════════════════════════════════════ -->
+
+<!-- COLLABORATE MODAL -->
+<div class="modal-overlay" id="collaborateModal" onclick="handleOverlayClick(event,'collaborateModal')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('collaborateModal')">×</button>
+    <div class="modal-title">✉️ Invite to Collaborate</div>
+    <div class="modal-sub">Send a collaboration request to Priya Sharma</div>
+    <div class="form-group"><label class="form-label">Brand / Company Name</label><input class="form-input" placeholder="e.g. Nykaa Beauty" id="collab-brand"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Campaign Type</label>
+        <select class="form-select">
+          <option>Instagram Reel</option>
+          <option>YouTube Integration</option>
+          <option>Instagram Stories</option>
+          <option>Full Campaign Bundle</option>
+          <option>Brand Ambassador</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Budget Range</label>
+        <select class="form-select">
+          <option>₹10K – ₹25K</option>
+          <option>₹25K – ₹75K</option>
+          <option>₹75K – ₹2L</option>
+          <option>₹2L+</option>
+          <option>Open to discuss</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Campaign Brief</label><textarea class="form-input form-textarea" placeholder="Describe your campaign goals, product, and what you're looking for..."></textarea></div>
+    <div class="form-group"><label class="form-label">Preferred Timeline</label><input class="form-input" type="date"></div>
+    <label class="checkbox-row"><input type="checkbox" checked><span class="checkbox-label">I agree to be contacted by the creator or their manager</span></label>
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button class="btn btn-ghost" style="flex:1;justify-content:center;" onclick="closeModal('collaborateModal')">Cancel</button>
+      <button class="btn btn-primary" style="flex:2;justify-content:center;" onclick="sendCollabRequest()">✉️ Send Collaboration Request</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE MODAL -->
+<div class="modal-overlay" id="shareModal" onclick="handleOverlayClick(event,'shareModal')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('shareModal')">×</button>
+    <div class="modal-title">🔗 Share Media Kit</div>
+    <div class="modal-sub">Share Priya's media kit with your team or download it</div>
+    <div class="link-copy-box">
+      <input type="text" value="collabglam.com/kit/priyaglam_official" readonly id="shareLink">
+      <button class="copy-btn" onclick="copyShareLink()">📋 Copy</button>
+    </div>
+    <div class="share-options">
+      <div class="share-btn" onclick="showToast('Sharing via WhatsApp...','success')"><div class="share-btn-icon">💬</div><div class="share-btn-label">WhatsApp</div></div>
+      <div class="share-btn" onclick="showToast('Sharing via Email...','success')"><div class="share-btn-icon">✉️</div><div class="share-btn-label">Email</div></div>
+      <div class="share-btn" onclick="showToast('Sharing via LinkedIn...','success')"><div class="share-btn-icon">💼</div><div class="share-btn-label">LinkedIn</div></div>
+      <div class="share-btn" onclick="showToast('Sharing via Slack...','success')"><div class="share-btn-icon">🔔</div><div class="share-btn-label">Slack</div></div>
+      <div class="share-btn" onclick="downloadKit()"><div class="share-btn-icon">📄</div><div class="share-btn-label">Download PDF</div></div>
+      <div class="share-btn" onclick="showToast('QR code generated!','success')"><div class="share-btn-icon">📱</div><div class="share-btn-label">QR Code</div></div>
+    </div>
+    <button class="btn btn-ghost btn-full" onclick="closeModal('shareModal')">Close</button>
+  </div>
+</div>
+
+<!-- PLATFORM MODAL -->
+<div class="modal-overlay" id="platformModal" onclick="handleOverlayClick(event,'platformModal')">
+  <div class="modal" style="max-width:420px;">
+    <button class="modal-close" onclick="closeModal('platformModal')">×</button>
+    <div class="modal-title" id="platformModalTitle">Instagram</div>
+    <div class="modal-sub">Platform performance overview</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+      <div class="metric-box"><div class="metric-lbl">Followers</div><div class="metric-val" id="pm-followers" style="font-size:22px;"></div></div>
+      <div class="metric-box"><div class="metric-lbl">Engagement Rate</div><div class="metric-val" id="pm-eng" style="font-size:22px;"></div></div>
+      <div class="metric-box"><div class="metric-lbl">Avg. Views</div><div class="metric-val" id="pm-views" style="font-size:22px;"></div></div>
+      <div class="metric-box"><div class="metric-lbl">Posts / Month</div><div class="metric-val" style="font-size:22px;">~18</div></div>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="closeModal('platformModal');openModal('collaborateModal')">✉️ Collaborate on this Platform</button>
+  </div>
+</div>
+
+<!-- CAMPAIGN MODAL -->
+<div class="modal-overlay" id="campaignModal" onclick="handleOverlayClick(event,'campaignModal')">
+  <div class="modal" style="max-width:460px;">
+    <button class="modal-close" onclick="closeModal('campaignModal')">×</button>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
+      <div style="font-size:32px;" id="cm-icon">💄</div>
+      <div class="modal-title" id="cm-title" style="margin-bottom:0;">Campaign</div>
+    </div>
+    <div class="modal-sub" id="cm-date"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
+      <div class="metric-box"><div class="metric-lbl">Impressions</div><div class="metric-val" id="cm-imp" style="font-size:22px;"></div></div>
+      <div class="metric-box"><div class="metric-lbl">Engagement</div><div class="metric-val" id="cm-eng" style="font-size:22px;"></div></div>
+      <div class="metric-box"><div class="metric-lbl">Clicks</div><div class="metric-val" id="cm-clicks" style="font-size:22px;"></div></div>
+      <div class="metric-box"><div class="metric-lbl">ROAS / Key Metric</div><div class="metric-val" id="cm-roas" style="font-size:22px;"></div></div>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="closeModal('campaignModal');openModal('collaborateModal')">✉️ Start a Similar Campaign</button>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let isShortlisted = false;
+
+// ── SCREEN NAVIGATION ──
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function showSubScreen(name) {
+  document.querySelectorAll('.sub-screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const el = document.getElementById('sub-' + name);
+  const nav = document.getElementById('nav-' + name);
+  if(el) el.classList.add('active');
+  if(nav) nav.classList.add('active');
+}
+
+// ── MODALS ──
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+function handleOverlayClick(e, id) {
+  if(e.target === document.getElementById(id)) closeModal(id);
+}
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(m => { m.classList.remove('open'); document.body.style.overflow = ''; });
+});
+
+// ── TOAST ──
+function showToast(message, type='info') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  const icons = {success:'✅', info:'💡', warning:'⚡'};
+  toast.innerHTML = `<span class="toast-icon">${icons[type]||'💡'}</span><span>${message}</span>`;
+  container.appendChild(toast);
+  requestAnimationFrame(() => { requestAnimationFrame(() => toast.classList.add('show')); });
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 400);
+  }, 3500);
+}
+
+// ── SHORTLIST ──
+function toggleShortlist() {
+  isShortlisted = !isShortlisted;
+  const badge = document.getElementById('shortlistedBadge');
+  const heroBtn = document.getElementById('heroShortlistBtn');
+  const sideBtn = document.getElementById('sidebarShortlistBtn');
+  if(isShortlisted) {
+    badge.classList.add('visible');
+    heroBtn.textContent = '★ Shortlisted!';
+    heroBtn.style.background = 'rgba(255,62,138,.15)';
+    heroBtn.style.borderColor = 'var(--pink)';
+    sideBtn.innerHTML = '★ Shortlisted!';
+    sideBtn.classList.add('active');
+    showToast('✅ Priya Sharma added to your shortlist!', 'success');
+  } else {
+    badge.classList.remove('visible');
+    heroBtn.textContent = '⭐ Shortlist Creator';
+    heroBtn.style.background = '';
+    heroBtn.style.borderColor = '';
+    sideBtn.innerHTML = '⭐ Shortlist Creator';
+    sideBtn.classList.remove('active');
+    showToast('Removed from shortlist', 'info');
+  }
+}
+
+// ── COLLAB REQUEST ──
+function sendCollabRequest() {
+  const brand = document.getElementById('collab-brand').value;
+  if(!brand.trim()) {
+    showToast('Please enter your brand name', 'warning');
+    document.getElementById('collab-brand').focus();
+    return;
+  }
+  const btn = event.target;
+  const original = btn.innerHTML;
+  btn.innerHTML = '<span class="spin">⚙️</span> Sending...';
+  btn.disabled = true;
+  setTimeout(() => {
+    closeModal('collaborateModal');
+    showToast(`🎉 Collaboration request sent to Priya Sharma! You'll hear back within 24 hrs.`, 'success');
+    btn.innerHTML = original;
+    btn.disabled = false;
+    document.getElementById('collab-brand').value = '';
+  }, 1800);
+}
+
+// ── SHARE / COPY ──
+function copyToClipboard(text, msg) {
+  navigator.clipboard.writeText(text).then(() => showToast(msg, 'success')).catch(() => showToast(msg, 'success'));
+}
+function copyShareLink() {
+  const val = document.getElementById('shareLink').value;
+  copyToClipboard('https://' + val, '🔗 Kit link copied to clipboard!');
+}
+function downloadKit() {
+  showToast('⬇️ Preparing PDF... download will start shortly', 'info');
+  closeModal('shareModal');
+  setTimeout(() => showToast('✅ Media Kit PDF downloaded successfully!', 'success'), 2000);
+}
+
+// ── PLATFORM MODAL ──
+function openPlatformModal(name, followers, eng, views) {
+  document.getElementById('platformModalTitle').textContent = name;
+  document.getElementById('pm-followers').textContent = followers;
+  document.getElementById('pm-eng').textContent = eng;
+  document.getElementById('pm-views').textContent = views;
+  openModal('platformModal');
+}
+
+// ── CAMPAIGN MODAL ──
+function openCampaignModal(name, icon, date, imp, eng, clicks, roas) {
+  document.getElementById('cm-icon').textContent = icon;
+  document.getElementById('cm-title').textContent = name;
+  document.getElementById('cm-date').textContent = date;
+  document.getElementById('cm-imp').textContent = imp;
+  document.getElementById('cm-eng').textContent = eng;
+  document.getElementById('cm-clicks').textContent = clicks;
+  document.getElementById('cm-roas').textContent = roas;
+  openModal('campaignModal');
+}
+
+// ── TOGGLE SWITCH ──
+function toggleSwitch(el, offMsg, onMsg) {
+  const isOn = el.classList.contains('on');
+  el.classList.toggle('on', !isOn);
+  el.classList.toggle('off', isOn);
+  showToast(isOn ? offMsg : onMsg, isOn ? 'warning' : 'success');
+}
+
+// ── LIVE PREVIEW (EDIT) ──
+function updatePreview() {
+  const name = document.getElementById('editName').value;
+  const bio = document.getElementById('editBio').value;
+  const niche = document.getElementById('editNiche').value;
+  document.getElementById('previewName').textContent = name || 'Creator Name';
+  document.getElementById('previewBio').textContent = bio || 'Your bio goes here...';
+  document.getElementById('previewNiche').textContent = niche || 'Niche';
+}
+
+// ── SAVE KIT ──
+function saveKitChanges() {
+  const btn = event.target;
+  const original = btn.innerHTML;
+  btn.innerHTML = '<span class="spin">⚙️</span> Saving...';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.innerHTML = '✅ Saved!';
+    showToast('✅ Media kit updated and published successfully!', 'success');
+    setTimeout(() => { btn.innerHTML = original; btn.disabled = false; }, 2000);
+    document.querySelector('.unsaved').innerHTML = '<span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;"></span> All changes saved';
+  }, 1500);
+}
+
+// ── SCROLL TO SECTION ──
+function scrollToSection(id) {
+  const el = document.getElementById(id);
+  if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// ── INIT ──
+window.addEventListener('load', () => {
+  setTimeout(() => showToast('👋 Welcome! Click any button to interact with the prototype.', 'info'), 800);
+});
+</script>
+</body>
+</html>
